@@ -43,7 +43,8 @@ impl RbxApp {
             ui.add_space(5.0);
             ui.label(RichText::new("Scramble Options").size(16.0));
             ui.indent(0, |ui| {
-                ui.toggle_value(&mut self.scramble_vis, "Scramble visible");
+                let toggle_txt = if self.scramble_vis { "Hide scramble" } else { "Show scramble" };
+                ui.toggle_value(&mut self.scramble_vis, toggle_txt);
                 ui.horizontal(|ui| {
                     ui.label("Scramble length:");
                     ui.add(egui::DragValue::new(&mut self.sparm_len).speed(1).range(1..=100));
