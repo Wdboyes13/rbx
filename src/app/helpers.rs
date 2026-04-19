@@ -17,9 +17,10 @@ impl RbxApp {
 
     pub fn write_store(&mut self) -> Result<()> {
         let data = self.solve_store.to_binary()?;
+        let cmp_data = zstd::encode_all(data.as_slice(), 12)?;
         self.store_file.seek(SeekFrom::Start(0))?;
         self.store_file.set_len(0)?;
-        self.store_file.write_all(data.as_slice())?;
+        self.store_file.write_all(cmp_data.as_slice())?;
         self.store_file.flush()?;
         Ok(())
     }

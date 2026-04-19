@@ -16,11 +16,17 @@ impl Default for RbxApp {
             .open(format!("{}/.rbx_data", home.to_str().unwrap()))
             .unwrap();
 
-        let mut buf = Vec::new();
-        if store_file.read_to_end(&mut buf).is_err() {
+        let mut cmp_buf = Vec::new();
+        if store_file.read_to_end(&mut cmp_buf).is_err() {
             display_error("Store error", "Failed to read store");
         }
-
+        let buf_res = zstd::decode_all(cmp_buf.as_slice());
+        if buf_res.is_err() {
+            display_error("Store error", "Failed to decompress store data");
+            panic!("{}", buf_res.err().unwrap());
+        }
+        let buf = buf_res.unwrap();
+        
         let solve_store = if buf.is_empty() {
             SolveStore::default()
         } else {
