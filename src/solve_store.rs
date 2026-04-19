@@ -36,38 +36,55 @@ impl SolveStore {
         postcard::from_bytes::<SolveStore>(&data)
     }
 
-    pub fn min_max(&self, min_idx: &mut usize, max_idx: &mut usize) {
+    pub fn min_max(&self, min_idx: &mut usize, max_idx: &mut usize, slice: &[Solve]) {
+        if slice.is_empty() {
+            return;
+        }
+
         *min_idx = 0;
         *max_idx = 0;
 
-        for i in 0..self.solves.len() {
-            if self.solves[i].solve_time > self.solves[*max_idx].solve_time {
+        for i in 1..slice.len() {
+            if slice[i].solve_time > slice[*max_idx].solve_time {
                 *max_idx = i;
             }
-            if self.solves[i].solve_time < self.solves[*min_idx].solve_time {
+            if slice[i].solve_time < slice[*min_idx].solve_time {
                 *min_idx = i;
             }
         }
     }
 
     pub fn avg(&self, out_of: usize, weighted: bool) -> Option<f64> {
-        if self.solves.len() < out_of {
+        if out_of == 0 || self.solves.len() < out_of {
             None
         } else {
-            let l5s = &self.solves[self.solves.len()-out_of-1..];
+            let l5s = &self.solves[self.solves.len()-out_of..];
             let mut l5s_times = Vec::<f64>::new();
             for i in l5s.iter() {
                 l5s_times.push(i.solve_time);
             }
 
             if weighted {
+                if l5s_times.len() <= 2 {
+                    return None;
+                }
+
                 let mut max_idx: usize = 0;
                 let mut min_idx: usize = 0;
 
-                self.min_max(&mut min_idx, &mut max_idx);
+                self.min_max(&mut min_idx, &mut max_idx, l5s);
 
-                l5s_times.remove(max_idx);
-                l5s_times.remove(min_idx);
+                if max_idx > min_idx {
+                    l5s_times.remove(max_idx);
+                    l5s_times.remove(min_idx);
+                } else {
+                    l5s_times.remove(min_idx);
+                    l5s_times.remove(max_idx);
+                }
+            }
+
+            if l5s_times.is_empty() {
+                return None;
             }
 
             let mut avg: f64 = 0.0;
@@ -86,7 +103,7 @@ impl SolveStore {
 
         let mut max_idx: usize = 0;
         let mut min_idx: usize = 0;
-        self.min_max(&mut min_idx, &mut max_idx);
+        self.min_max(&mut min_idx, &mut max_idx, &self.solves);
         self.solves[min_idx].solve_time
     }
 
@@ -97,7 +114,7 @@ impl SolveStore {
 
         let mut max_idx: usize = 0;
         let mut min_idx: usize = 0;
-        self.min_max(&mut min_idx, &mut max_idx);
+        self.min_max(&mut min_idx, &mut max_idx, &self.solves);
         self.solves[max_idx].solve_time
     }
 }
