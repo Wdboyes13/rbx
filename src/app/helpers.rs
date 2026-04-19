@@ -1,6 +1,8 @@
 use anyhow::Result;
 use std::io::{SeekFrom, Seek, Write};
 use chrono::{Local, TimeZone, Utc};
+use eframe::egui;
+use crate::app::View;
 use crate::{
     scramble::Seq,
     solve_store::Solve,
@@ -43,5 +45,30 @@ impl RbxApp {
         let dtime = Utc.timestamp_opt(utime as i64, 0).unwrap();
         let local = Local.from_utc_datetime(&dtime.naive_utc());
         local.to_rfc3339()
+    }
+
+    pub fn format_swtime(&self) -> String {
+        let ms = self.swatch.elapsed().as_secs_f64();
+        format!("{:.3}", ms)
+    }
+
+    pub fn set_vpsz(&mut self, ui: &mut egui::Ui) {
+        match self.view {
+            View::Main => {
+                ui.send_viewport_cmd(egui::ViewportCommand::InnerSize(
+                    egui::vec2(512.0, 360.0)
+                ));
+            },
+            View::SolveViewer => {
+                ui.send_viewport_cmd(egui::ViewportCommand::InnerSize(
+                    egui::vec2(850.0, 425.0)
+                ));
+            },
+            View::Timer => {
+                ui.send_viewport_cmd(egui::ViewportCommand::InnerSize(
+                    egui::vec2(512.0, 360.0)
+                ));
+            }
+        }
     }
 }

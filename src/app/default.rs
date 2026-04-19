@@ -1,3 +1,5 @@
+use stopwatch2::Stopwatch;
+
 use crate::app::{RbxApp, View};
 use crate::solve_store::SolveStore;
 use crate::display_error;
@@ -48,7 +50,9 @@ impl Default for RbxApp {
             ao12,
             best,
             worst,
-            view: View::Main
+            view: View::Main,
+            last_view: None,
+            swatch: Stopwatch::default()
         }
     }
 }

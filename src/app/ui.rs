@@ -11,19 +11,63 @@ impl RbxApp {
                 ui.add_space(2.0);
                 match self.view {
                     View::Main => {
+                        if ui.button("Back").clicked() &&
+                            let Some(last_view) = self.last_view {
+                                self.last_view = Some(View::Main);
+                                self.view = last_view;
+                                self.set_vpsz(ui);
+                        }
+
                         if ui.button("Solve Viewer").clicked() {
-                            ui.send_viewport_cmd(egui::ViewportCommand::InnerSize(
-                                egui::vec2(850.0, 425.0)
-                            ));
+                            self.last_view = Some(View::Main);
                             self.view = View::SolveViewer;
+                            self.set_vpsz(ui);
+                        }
+
+                        if ui.button("Timer").clicked() {
+                            self.last_view = Some(View::Main);
+                            self.view = View::Timer;
+                            self.set_vpsz(ui);
                         }
                     },
                     View::SolveViewer => {
-                        if ui.button("Back").clicked() {
-                            ui.send_viewport_cmd(egui::ViewportCommand::InnerSize(
-                                egui::vec2(512.0, 360.0)
-                            ));
+                        if ui.button("Back").clicked() && 
+                            let Some(last_view) = self.last_view {
+                                self.last_view = Some(View::SolveViewer);
+                                self.view = last_view;
+                                self.set_vpsz(ui);
+                        }
+
+                        if ui.button("Home").clicked() {
+                            self.last_view = Some(View::SolveViewer);
                             self.view = View::Main;
+                            self.set_vpsz(ui);
+                        }
+
+                        if ui.button("Timer").clicked() {
+                            self.last_view = Some(View::SolveViewer);
+                            self.view = View::Timer;
+                            self.set_vpsz(ui);
+                        }
+                    },
+                    View::Timer => {
+                        if ui.button("Back").clicked() &&
+                            let Some(last_view) = self.last_view {
+                                self.last_view = Some(View::Timer);
+                                self.view = last_view;
+                                self.set_vpsz(ui);
+                        }
+
+                        if ui.button("Home").clicked() {
+                            self.last_view = Some(View::Timer);
+                            self.view = View::Main;
+                            self.set_vpsz(ui);
+                        }
+
+                        if ui.button("Solve Viewer").clicked() {
+                            self.last_view = Some(View::Timer);
+                            self.view = View::SolveViewer;
+                            self.set_vpsz(ui);
                         }
                     }
                 }
@@ -69,7 +113,7 @@ impl RbxApp {
                     if let Ok(stime) = self.stime_buf.parse::<f64>() {
                         self.push_current(stime);
                         self.stime_buf.clear();
-                    } else {   
+                    } else {
                         display_error("Parse error", "Input time could not be converted to a number");
                     }
                 }
@@ -139,6 +183,44 @@ impl RbxApp {
                 });
         });
     }
+
+    fn timer_ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        self.menu_bar(ui);
+        egui::CentralPanel::default().show_inside(ui, |ui| {
+            ui.input(|inp| {
+                if inp.key_pressed(egui::Key::Space) {
+                    if self.swatch.is_running() {
+                        self.swatch.stop();
+                    } else {
+                        self.swatch.spans.clear();
+                        self.swatch.start();
+                    }
+                }
+                if inp.key_pressed(egui::Key::C) && !self.swatch.is_running() {
+                    self.swatch.spans.clear();
+                }
+            });
+
+            if self.swatch.is_running() {
+                ui.ctx().request_repaint_after(std::time::Duration::from_millis(10));
+            }
+
+            ui.vertical_centered_justified(|ui| {
+                ui.label(
+                RichText::new(self.format_swtime())
+                        .size(24.0)
+                        .monospace()
+                );
+                    
+                if self.swatch.is_running() {
+                    ui.label("Press [space] to stop");
+                } else {
+                    ui.label("Press [space] to start");
+                    ui.label("Press [c] to clear time");
+                }
+            });
+        });
+    }
 }
 
 impl eframe::App for RbxApp {
@@ -149,6 +231,9 @@ impl eframe::App for RbxApp {
             },
             View::SolveViewer => {
                 self.solve_viewer_ui(ui, frame);
+            },
+            View::Timer => {
+                self.timer_ui(ui, frame);
             }
         }
     }

@@ -5,10 +5,13 @@ mod ui;
 use crate::solve_store::SolveStore;
 use crate::scramble::Seq;
 use std::fs::File;
+use stopwatch2::Stopwatch;
 
+#[derive(Copy, Clone)]
 enum View {
     Main,
-    SolveViewer
+    SolveViewer,
+    Timer
 }
 
 pub struct RbxApp {
@@ -23,5 +26,7 @@ pub struct RbxApp {
     ao12: Option<f64>,
     best: f64,
     worst: f64,
-    view: View
+    view: View,
+    last_view: Option<View>,
+    swatch: Stopwatch,
 }
